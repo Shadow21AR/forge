@@ -142,7 +142,6 @@ const catalogPreview = catalog
             <button id="build-button" type="button" class="btn-start-build">
               Start build
             </button>
-            <button id="suggest-button" class="secondary" type="button">Prepare catalog suggestion</button>
           </div>
         </div>
       </div>
@@ -156,7 +155,6 @@ const catalogPreview = catalog
         </div>
       </div>
       <div id="inspector" class="empty">Inspect a repository to load refs, defaults, and matching Forge profile data.</div>
-      <div id="suggestion" class="log-card" style="display:none"></div>
     </aside>
   </section>
 
@@ -205,7 +203,6 @@ const catalogPreview = catalog
     const buildPanel = document.querySelector("#build-panel") as HTMLElement;
     const refPills = document.querySelector("#ref-pills") as HTMLElement;
     const inspector = document.querySelector("#inspector") as HTMLElement;
-    const suggestion = document.querySelector("#suggestion") as HTMLElement;
     const advancedToggle = document.querySelector("#advanced-toggle") as HTMLInputElement;
     const advancedPanel = document.querySelector("#advanced-panel") as HTMLElement;
 
@@ -275,7 +272,6 @@ const catalogPreview = catalog
       
       inspectStatus.textContent = "Inspecting…";
       inspectStatus.className = "muted";
-      suggestion.style.display = "none";
       
       try {
         const response = await fetch("/api/repo/inspect", {
@@ -336,17 +332,6 @@ const catalogPreview = catalog
       } finally {
         setButtonLoading(inspectButton, false, originalText);
       }
-    });
-
-    document.querySelector("#suggest-button")?.addEventListener("click", async () => {
-      const response = await fetch("/api/catalog/suggest", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ repo_url: state.repoUrl || repoUrlInput.value }),
-      });
-      const data = await response.json();
-      suggestion.style.display = "block";
-      suggestion.innerHTML = `<strong>Catalog suggestion</strong><pre>${data.suggestion}</pre><p style="margin-top: 0.75rem; font-size: 0.85rem;">To add to catalog: DM <strong>Shadow21A</strong> on Discord or open a PR.</p>`;
     });
 
     const buildButton = document.querySelector("#build-button") as HTMLButtonElement;

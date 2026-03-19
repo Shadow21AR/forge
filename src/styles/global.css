@@ -41,7 +41,7 @@ a {
   max-width: 1440px;
   width: 100%;
   margin: 0 auto;
-  padding: 0 1rem;
+  padding: 1.5rem 1rem;
 }
 
 .topbar {
@@ -502,6 +502,11 @@ textarea {
 
 .pill:hover {
   background: rgba(107, 140, 174, 0.15);
+}
+
+.pill.active {
+  background: rgba(107, 140, 174, 0.25);
+  border-color: #6b8cae;
 }
 
 .log-card,

@@ -28,27 +28,32 @@ const knownTools = catalog.filter((entry) => entry.enabled);
   <section class="panel">
     <div class="toolbar">
       <h2 class="section-title">Releases</h2>
-      <div class="pill-list catalog-pills">
+      <div id="pill-container" class="pill-list catalog-pills">
         {knownTools.map((tool) => (
           <button class="pill" type="button" data-result-repo={tool.repo_url}>{tool.id}</button>
         ))}
       </div>
     </div>
-    <div class="note" style="margin-bottom: 1rem;">Showing 20 most recent releases. Use search to find specific repositories.</div>
     <div id="results-list" class="empty">No releases loaded yet.</div>
   </section>
 
   <script>
+    const pillContainer = document.getElementById("pill-container");
+    
     async function loadResults(repoUrl = "") {
       const target = document.querySelector("#results-list") as HTMLElement;
+      
       target.innerHTML = "<div class='empty'>Loading releases…</div>";
       const query = repoUrl ? `?repo_url=${encodeURIComponent(repoUrl)}` : "";
       const response = await fetch(`/api/releases${query}`);
+      
       if (!response.ok) {
         target.innerHTML = "<div class='empty'>Unable to load releases.</div>";
         return;
       }
+      
       const data = await response.json();
+      
       if (!data.releases?.length) {
         if (repoUrl) {
           target.innerHTML = `
@@ -62,6 +67,7 @@ const knownTools = catalog.filter((entry) => entry.enabled);
         }
         return;
       }
+      
       target.innerHTML = data.releases
         .map((release: { name: string; tag: string; published_at: string; assets: Array<{ name: string; size: number }> }) => `
           <article class="result-card">
@@ -94,22 +100,34 @@ const knownTools = catalog.filter((entry) => entry.enabled);
         .join("");
     }
 
+    function setActivePill(repoUrl: string) {
+      pillContainer?.querySelectorAll(".pill").forEach((p) => p.classList.remove("active"));
+      if (repoUrl) {
+        pillContainer?.querySelectorAll("[data-result-repo]").forEach((p) => {
+          if ((p as HTMLElement).dataset.resultRepo === repoUrl) {
+            p.classList.add("active");
+          }
+        });
+      }
+    }
+
     document.querySelectorAll("[data-result-repo]").forEach((button) => {
       button.addEventListener("click", () => {
-        const input = document.querySelector("#results-repo") as HTMLInputElement;
         const btn = button as HTMLButtonElement;
-        input.value = btn.dataset.resultRepo ?? "";
+        setActivePill(btn.dataset.resultRepo ?? "");
         loadResults(btn.dataset.resultRepo ?? "");
       });
     });
 
-    document.querySelector("#results-button")?.addEventListener("click", async () => {
+    document.querySelector("#results-button")?.addEventListener("click", () => {
       const input = document.querySelector("#results-repo") as HTMLInputElement;
+      setActivePill(input.value.trim());
       loadResults(input.value.trim());
     });
 
-    document.querySelector("#results-all")?.addEventListener("click", async () => {
+    document.querySelector("#results-all")?.addEventListener("click", () => {
       (document.querySelector("#results-repo") as HTMLInputElement).value = "";
+      setActivePill("");
       loadResults("");
     });
 

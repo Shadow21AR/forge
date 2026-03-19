@@ -186,6 +186,14 @@ jobs:
             fi
           fi
 
+          if ! git ls-files '*.csproj' '*.sln' '*.vbproj' | grep -qE '\.(csproj|sln|vbproj)$'; then
+            echo "skip_build=true" >> "$GITHUB_OUTPUT"
+            echo "### Validation Failed" >> "$GITHUB_STEP_SUMMARY"
+            echo "- No .csproj, .sln, or .vbproj files found" >> "$GITHUB_STEP_SUMMARY"
+            echo "- Forge only builds .NET/C# projects" >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+
           resolved_commit="$(git rev-parse HEAD)"
           short_commit="$(git rev-parse --short=12 HEAD)"
           resolved_tag="$(git tag --points-at HEAD | head -n 1 || true)"
@@ -297,22 +305,19 @@ jobs:
             $existingContent = Get-Content $propsPath -Raw
             if ($existingContent -match "Microsoft\.NETFramework\.ReferenceAssemblies") {
               Write-Host "Reference assembly package already configured"
-              exit 0
+            } else {
+              Write-Host "WARNING: Directory.Build.props exists but lacks reference assemblies"
             }
-          }
-
-          $propsContent = @(
-            '<Project>',
-            '  <ItemGroup>',
-            '    <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.3" PrivateAssets="All" />',
-            '  </ItemGroup>',
-            '</Project>'
-          ) -join "`n"
-
-          if ([string]::IsNullOrWhiteSpace($existingContent)) {
-            Set-Content -Path $propsPath -Value $propsContent -Encoding UTF8
           } else {
-            throw "Directory.Build.props already exists and does not include Microsoft.NETFramework.ReferenceAssemblies"
+            $propsContent = @(
+              '<Project>',
+              '  <ItemGroup>',
+              '    <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.3" PrivateAssets="All" />',
+              '  </ItemGroup>',
+              '</Project>'
+            ) -join "`n"
+            Set-Content -Path $propsPath -Value $propsContent -Encoding UTF8
+            Write-Host "Injected reference assemblies"
           }
 
       - name: Find project file
@@ -405,8 +410,6 @@ jobs:
           if ([string]::IsNullOrWhiteSpace($restoreMode) -or $restoreMode -eq "auto") {
             if ($hasPackagesConfig -or $hasLegacyPackageImports) {
               $restoreMode = "legacy_nuget_strict"
-            } elseif ($restoreTarget.EndsWith(".sln")) {
-              $restoreMode = "msbuild_restore"
             } else {
               $restoreMode = "msbuild_restore"
             }
@@ -708,7 +711,7 @@ jobs:
           $profilePath = Join-Path $profileDir "${{ needs.preflight.outputs.tool_id }}.json"
           $profile | ConvertTo-Json -Depth 5 | Set-Content $profilePath -Encoding UTF8
 
-      - name: Commit build profile
+      - name: Commit build profile and catalog
         run: |
           $profileFile = "tools/profiles/${{ needs.preflight.outputs.tool_id }}.json"
           $profileContent = Get-Content -Raw $profileFile
@@ -724,15 +727,28 @@ jobs:
             if ($LASTEXITCODE -ne 0) { continue }
 
             Set-Content -Path $profileFile -Value $profileContent -Encoding UTF8
-
             git add $profileFile
+
+            $catalogFile = "tools/catalog.yml"
+            $catalogContent = Get-Content -Raw $catalogFile
+            $toolId = "${{ needs.preflight.outputs.tool_id }}"
+            $repoUrl = "${{ needs.preflight.outputs.repo_url }}"
+            $alreadyInCatalog = $catalogContent -match "(?m)^\s+- id:\s+$([regex]::Escape($toolId))\s*$"
+            if (-not $alreadyInCatalog) {
+              $entry = "  - id: $toolId`n    repo_url: $repoUrl`n    enabled: true`n    default_configuration: Release`n    version_strategy: tag_then_commit`n"
+              $catalogContent = $catalogContent.TrimEnd() + "`n" + $entry
+              Set-Content -Path $catalogFile -Value $catalogContent -Encoding UTF8
+              git add $catalogFile
+              Write-Host "Added $toolId to catalog"
+            }
+
             git diff --cached --quiet
             if ($LASTEXITCODE -eq 0) {
-              Write-Host "No profile changes to commit"
+              Write-Host "No changes to commit"
               exit 0
             }
 
-            git commit -m "Update build profile for ${{ needs.preflight.outputs.tool_id }}"
+            git commit -m "Update build profile and catalog for $toolId"
             if ($LASTEXITCODE -ne 0) { continue }
 
             git push origin "HEAD:$branch"
