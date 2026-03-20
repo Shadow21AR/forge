@@ -216,4 +216,9 @@ tools:
     enabled: true
     default_configuration: Release
     version_strategy: tag_then_commit
+  - id: sharplaps
+    repo_url: https://github.com/swisskyrepo/SharpLAPS
+    enabled: true
+    default_configuration: Release
+    version_strategy: tag_then_commit
 
