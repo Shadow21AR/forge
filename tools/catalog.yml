@@ -211,4 +211,9 @@ tools:
     enabled: true
     default_configuration: Release
     version_strategy: tag_then_commit
+  - id: adconnectdump
+    repo_url: https://github.com/dirkjanm/adconnectdump
+    enabled: true
+    default_configuration: Release
+    version_strategy: tag_then_commit
 
