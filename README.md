@@ -146,12 +146,13 @@ When enabled, it rebuilds everything instead of stopping at the release cache ch
 
 ## Current Scope
 
-This repository currently targets .NET and C# repositories on Windows runners.
+This repository targets .NET/C# and C++ projects on Windows runners.
 
-The workflow supports both:
+The workflow supports:
 
 - newer SDK-style .NET projects
 - older .NET Framework projects that need legacy restore handling
+- C++ projects (.vcxproj) with automatic Visual C++ tool installation
 
 It is not yet intended to be a general multi-language build system.
 

@@ -138,6 +138,7 @@ jobs:
       asset_prefix: ${{ steps.meta.outputs.asset_prefix }}
       build_key: ${{ steps.meta.outputs.build_key }}
       skip_build: ${{ steps.cache.outputs.skip_build }}
+      needs_cpp: ${{ steps.meta.outputs.needs_cpp }}
     env:
       GH_TOKEN: ${{ github.token }}
     steps:
@@ -186,13 +187,19 @@ jobs:
             fi
           fi
 
-          if ! git ls-files '*.csproj' '*.sln' '*.vbproj' | grep -qE '\.(csproj|sln|vbproj)$'; then
+          if ! git ls-files '*.csproj' '*.sln' '*.vbproj' '*.vcxproj' | grep -qE '\.(csproj|sln|vbproj|vcxproj)$'; then
             echo "skip_build=true" >> "$GITHUB_OUTPUT"
             echo "### Validation Failed" >> "$GITHUB_STEP_SUMMARY"
-            echo "- No .csproj, .sln, or .vbproj files found" >> "$GITHUB_STEP_SUMMARY"
-            echo "- Forge only builds .NET/C# projects" >> "$GITHUB_STEP_SUMMARY"
+            echo "- No .csproj, .sln, .vbproj, or .vcxproj files found" >> "$GITHUB_STEP_SUMMARY"
+            echo "- Forge only builds .NET/C# and C++ projects" >> "$GITHUB_STEP_SUMMARY"
             exit 0
           fi
+
+          has_cpp=false
+          if git ls-files '*.vcxproj' | grep -qE '\.vcxproj$'; then
+            has_cpp=true
+          fi
+          echo "needs_cpp=$has_cpp" >> "$GITHUB_OUTPUT"
 
           resolved_commit="$(git rev-parse HEAD)"
           short_commit="$(git rev-parse --short=12 HEAD)"
@@ -283,6 +290,45 @@ jobs:
             6.0.x
             7.0.x
             8.0.x
+
+      - name: Setup Visual C++ build tools
+        if: needs.preflight.outputs.needs_cpp == 'true'
+        run: |
+          $ErrorActionPreference = "Continue"
+          $PSNativeCommandUseErrorActionPreference = $false
+
+          $vswhere = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe"
+          if (-not (Test-Path $vswhere)) {
+            Write-Host "vswhere not found, skipping C++ setup"
+            exit 0
+          }
+
+          $vsPath = & $vswhere -latest -property installationPath
+          if (-not $vsPath) {
+            Write-Host "Visual Studio not found, skipping C++ setup"
+            exit 0
+          }
+
+          $cppTools = Join-Path $vsPath "VC\Auxiliary\Build\Microsoft.VCToolsVersion.v143.default.txt"
+          if (Test-Path $cppTools) {
+            Write-Host "Visual C++ tools already present at $vsPath"
+            exit 0
+          }
+
+          Write-Host "Installing Visual C++ build tools for $vsPath..."
+          $installer = Join-Path (Split-Path $vsPath) "Installer\vs_installer.exe"
+          if (Test-Path $installer) {
+            & $installer modify `
+              --installPath $vsPath `
+              --add Microsoft.VisualStudio.Workload.VCTools `
+              --add Microsoft.VisualStudio.Component.Windows11SDK.22621 `
+              --includeRecommended `
+              --quiet `
+              --wait
+            Write-Host "Visual C++ build tools installed"
+          } else {
+            Write-Host "VS Installer not found at $installer"
+          }
 
       - name: Clone target repository
         working-directory: ${{ github.workspace }}
