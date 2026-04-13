@@ -8,7 +8,7 @@ export const onRequest = defineMiddleware(async (context, next) => {
     pathname.startsWith("/_astro/") ||
     pathname.startsWith("/favicon") ||
     pathname === "/" ||
-    pathname.startsWith("/results") ||
+    pathname.startsWith("/packages") ||
     pathname.startsWith("/runs") ||
     pathname.startsWith("/api/releases") ||
     pathname.startsWith("/api/runs")

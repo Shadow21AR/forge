@@ -6,12 +6,12 @@ export const prerender = false;
 const knownTools = catalog.filter((entry) => entry.enabled);
 ---
 
-<AppLayout title="forge - Browse Results" description="Browse completed builds and download artifacts from GitHub Releases.">
+<AppLayout title="forge - Browse Packages" description="Browse completed builds and download artifacts from GitHub Releases.">
   <section class="hero">
     <section class="panel">
-      <p class="kicker">Results</p>
-      <h1>Browse completed builds.</h1>
-      <p>Load all Forge releases or narrow the list to one repository.</p>
+      <p class="kicker">Packages</p>
+      <h1>Download builds.</h1>
+      <p>Browse releases or filter by repo. Use the input above to search.</p>
     </section>
     <aside class="panel">
       <div class="field">
@@ -34,7 +34,7 @@ const knownTools = catalog.filter((entry) => entry.enabled);
         ))}
       </div>
     </div>
-    <div id="results-list" class="empty">No releases loaded yet.</div>
+    <div id="results-list" class="empty">No packages yet.</div>
   </section>
 
   <script>
@@ -43,12 +43,12 @@ const knownTools = catalog.filter((entry) => entry.enabled);
     async function loadResults(repoUrl = "") {
       const target = document.querySelector("#results-list") as HTMLElement;
       
-      target.innerHTML = "<div class='empty'>Loading releases…</div>";
+      target.innerHTML = "<div class='empty'>Loading…</div>";
       const query = repoUrl ? `?repo_url=${encodeURIComponent(repoUrl)}` : "";
       const response = await fetch(`/api/releases${query}`);
       
       if (!response.ok) {
-        target.innerHTML = "<div class='empty'>Unable to load releases.</div>";
+        target.innerHTML = "<div class='empty'>Unable to load packages.</div>";
         return;
       }
       
@@ -58,12 +58,12 @@ const knownTools = catalog.filter((entry) => entry.enabled);
         if (repoUrl) {
           target.innerHTML = `
             <div class='empty'>
-              <p>No releases found for <strong>${repoUrl}</strong>.</p>
-              <p style="margin-top: 0.5rem;">Want to build this repository? <a href="/?repo=${encodeURIComponent(repoUrl)}" class="button secondary" style="margin-top: 0.5rem; display: inline-flex;">Go build it</a></p>
+              <p>No packages found for <strong>${repoUrl}</strong>.</p>
+              <p style="margin-top: 0.5rem;">Want to build it? <a href="/build?repo=${encodeURIComponent(repoUrl)}" class="button secondary" style="margin-top: 0.5rem; display: inline-flex;">Build it</a></p>
             </div>
           `;
         } else {
-          target.innerHTML = "<div class='empty'>No matching releases found.</div>";
+          target.innerHTML = "<div class='empty'>No packages found.</div>";
         }
         return;
       }

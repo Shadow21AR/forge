@@ -8,18 +8,18 @@ const { id } = Astro.params;
 <AppLayout title={`forge - Run #${id}`} description={`Track build run #${id} status and progress.`}>
   <section class="hero">
     <section class="panel">
-      <p class="kicker">Run status</p>
-      <h1>Track one build.</h1>
-      <p>Preflight, cache decision, build status, and step progress are shown below.</p>
+      <p class="kicker">Run</p>
+      <h1>Build status.</h1>
+      <p>Shows build progress and steps.</p>
       <div class="inline-actions">
         <a class="button secondary" href="/runs">Back to runs</a>
-        <a class="button ghost" href="/results">Browse results</a>
+        <a class="button ghost" href="/packages">Browse packages</a>
       </div>
     </section>
     <aside class="panel">
       <div class="stat">
         <strong>Run #{id}</strong>
-        <span class="muted">The page polls GitHub Actions until the run finishes.</span>
+        <span class="muted">Auto-refreshes until done.</span>
       </div>
     </aside>
   </section>
@@ -39,7 +39,7 @@ const { id } = Astro.params;
       try {
         const response = await fetch(`/api/runs/${id}`);
         if (!response.ok) {
-          target.innerHTML = "<div class='empty'>Unable to load workflow run.</div>";
+          target.innerHTML = "<div class='empty'>Unable to load run.</div>";
           return;
         }
         const data = await response.json();
@@ -74,11 +74,11 @@ const { id } = Astro.params;
           }
         }
         
-        const skippedNote = wasSkipped ? "<div class='info-banner' style='margin-bottom: 1rem; margin-top: 0.5rem;'><strong>Build was skipped</strong> - a release already exists for this ref. <a href='/results' style='color: var(--accent-2);'>Check Results</a> to download.</div>" : "";
+        const skippedNote = wasSkipped ? "<div class='info-banner' style='margin-bottom: 1rem; margin-top: 0.5rem;'><strong>Build was skipped</strong> - a release already exists for this ref. <a href='/packages' style='color: var(--accent-2);'>Check Packages</a> to download.</div>" : "";
         const skippedClass = wasSkipped ? "status skipped" : statusClass;
         
         if (refreshNote) {
-          refreshNote.textContent = wasSkipped ? "No build needed." : "Auto-refreshes while the run is active.";
+          refreshNote.textContent = wasSkipped ? "No build needed." : "Auto-refreshes until done.";
         }
         
         let html = "<div class='log-card'><div class='split'><div><strong>" + (data.name || "Forge build") + "</strong>";
@@ -86,7 +86,7 @@ const { id } = Astro.params;
         if (data.html_url) {
           html += "<a href='" + data.html_url + "' target='_blank' rel='noreferrer'>Open in GitHub</a> | ";
         }
-        html += "<a href='/results'>Browse Results</a></div></div>";
+        html += "<a href='/packages'>Browse Packages</a></div></div>";
         html += "<span class='" + skippedClass + "'>" + statusMessage + "</span></div>" + skippedNote;
         html += "<div class='detail-list'><div><span class='muted'>Created</span><strong>" + (data.created_at || "unknown") + "</strong></div>";
         html += "<div><span class='muted'>Updated</span><strong>" + (data.updated_at || "unknown") + "</strong></div>";
@@ -95,7 +95,7 @@ const { id } = Astro.params;
         jobs.forEach(function(job) {
           const jobStatusClass = getStatusClass(job.status, job.conclusion);
           html += "<article class='log-card " + jobStatusClass + "-border " + jobStatusClass + "-bg'>";
-          html += "<div class='split'><strong>" + (job.name || "Unknown job") + "</strong></div>";
+          html += "<div class='split'><strong>" + (job.name || "Job") + "</strong></div>";
           html += "<div class='pill-list'>";
           if (job.steps) {
             job.steps.forEach(function(step) {

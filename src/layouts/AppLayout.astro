@@ -13,12 +13,14 @@ const contributors = [
     role: "Contributor",
     avatar:
       "https://cdn.discordapp.com/avatars/960119774526988348/6cf05d2bd1ccc5ae69769b8911c84bc0.png?size=512",
+    url: "https://github.com/Shadow21AR",
   },
   {
-    name: "Azomax",
+    name: "Azomaxx",
     role: "Contributor",
     avatar:
       "https://cdn.discordapp.com/avatars/147398098967199745/a78f63c93e499c9b8595b2c338387efb.png?size=512",
+    url: "https://github.com/azomaxx",
   },
 ];
 const pathname = Astro.url.pathname;
@@ -69,8 +71,8 @@ const url = Astro.url.href;
           </a>
           <nav class="nav-links" id="nav">
             <span class="nav-indicator"></span>
-            <a href="/" class={pathname === "/" ? "active" : ""}>Build</a>
-            <a href="/results" class={pathname.startsWith("/results") ? "active" : ""}>Results</a>
+            <a href="/packages" class={pathname === "/packages" || pathname === "/" ? "active" : ""}>Packages</a>
+            <a href="/build" class={pathname.startsWith("/build") ? "active" : ""}>Build</a>
             <a href="/runs" class={pathname.startsWith("/runs") ? "active" : ""}>Runs</a>
           </nav>
         </div>
@@ -80,15 +82,15 @@ const url = Astro.url.href;
       <slot />
       <footer class="creator-bar">
         {contributors.map((contributor) => (
-          <div class="creator-card">
+          <a class="creator-card" href={contributor.url} target="_blank" rel="noopener">
             <img src={contributor.avatar} alt={`${contributor.name} avatar`} loading="lazy" />
             <div>
               <strong>{contributor.name}</strong>
               <span>{contributor.role}</span>
             </div>
-          </div>
+          </a>
         ))}
-        <a href="https://github.com/Shadow21AR/forge" target="_blank" rel="noopener" class="repo-link">
+        <a href="https://github.com/ForgeNet21AR/forge" target="_blank" rel="noopener" class="repo-link">
           <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path>
           </svg>
