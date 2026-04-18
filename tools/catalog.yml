@@ -256,4 +256,9 @@ tools:
     enabled: true
     default_configuration: Release
     version_strategy: tag_then_commit
+  - id: ysoserial.net
+    repo_url: https://github.com/pwntester/ysoserial.net
+    enabled: true
+    default_configuration: Release
+    version_strategy: tag_then_commit
 

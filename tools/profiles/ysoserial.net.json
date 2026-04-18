@@ -1,0 +1,13 @@
+{
+  "tool_id": "ysoserial.net",
+  "repo_url": "https://github.com/pwntester/ysoserial.net",
+  "project_path": "ysoserial.sln",
+  "configuration": "Release",
+  "target_framework": "",
+  "version_strategy": "tag_then_commit",
+  "restore_mode": "auto",
+  "build_mode": "auto",
+  "asset_include": null,
+  "asset_exclude": null
+}
+
