@@ -251,4 +251,9 @@ tools:
     enabled: true
     default_configuration: Release
     version_strategy: tag_then_commit
+  - id: portscanner
+    repo_url: https://github.com/IceMoonHSV/PortScanner
+    enabled: true
+    default_configuration: Release
+    version_strategy: tag_then_commit
 
